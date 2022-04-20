@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+    <!--
+    targetRuntime: 执行生成的逆向工程的版本
+    MyBatis3Simple: 生成基本的CRUD（清新简洁版）
+    MyBatis3: 生成带条件的CRUD（奢华尊享版）
+    -->
+    <context id="DB2Tables" targetRuntime="MyBatis3Simple">
+        <!--===================================不需要变动===================================-->
+        <!-- 自动给关键字添加分隔符 -->
+        <property name="autoDelimitKeywords" value="true"/>
+        <!-- 前缀分隔符 -->
+        <property name="beginningDelimiter" value="`"/>
+        <!-- 后置分隔符 -->
+        <property name="endingDelimiter" value="`"/>
+        <!-- Java文件编码 -->
+        <property name="javaFileEncoding" value="UTF-8"/>
+        <!-- Java文件格式 -->
+        <property name="javaFormatter" value="org.mybatis.generator.api.dom.DefaultJavaFormatter"/>
+        <!-- XML文件格式 -->
+        <property name="xmlFormatter" value="org.mybatis.generator.api.dom.DefaultXmlFormatter"/>
+        <!--===================================不需要变动===================================-->
+        <!-- 实现Serializable接口 -->
+        <plugin type="org.mybatis.generator.plugins.SerializablePlugin"/>
+        <!-- 生成toString方法 -->
+        <plugin type="org.mybatis.generator.plugins.ToStringPlugin"/>
+        <!--===================================不需要变动===================================-->
+        <!--生成注释-->
+        <commentGenerator>
+            <!-- 完全禁止生成注释 -->
+            <property name="suppressAllComments" value="true"/>
+            <!-- 禁止生成时间戳注释 -->
+            <property name="suppressDate" value="true"/>
+            <!-- 时间戳格式, 要符合SimpleDateFormat -->
+            <!--<property name="dateFormat" value="yyyy/MM/dd HH:mm:ss"/>-->
+            <!-- 注释是否包含对应表名或列名信息 -->
+            <!--<property name="addRemarkComments" value="true"/>-->
+        </commentGenerator>
+
+        <!--===================================需要变动===================================-->
+        <!-- 数据库的连接信息 -->
+        <jdbcConnection driverClass="com.mysql.jdbc.Driver"
+                        connectionURL="jdbc:mysql://localhost:3306/ssm"
+                        userId="root"
+                        password="123456">
+        </jdbcConnection>
+        <!--===================================需要变动===================================-->
+
+        <!--===================================不需要变动===================================-->
+        <!-- 设置JDBC类型和Java类型的映射 -->
+        <javaTypeResolver>
+            <!--  true：使用BigDecimal对应DECIMAL和NUMERIC数据类型
+                  false：默认值
+                    scale>0;length>18：使用BigDecimal;
+                    scale=0;length[10,18]：使用Long；
+                    scale=0;length[5,9]：使用Integer；
+                    scale=0;length<5：使用Short -->
+            <property name="forceBigDecimals" value="false"/>
+            <!-- 是否应该符合JSR-310日期类型, 还是说直接将日期映射成java.util.Date -->
+            <property name="useJSR310Types" value="false"/>
+        </javaTypeResolver>
+        <!--===================================不需要变动===================================-->
+
+
+        <!-- javaBean的生成策略-->
+        <javaModelGenerator targetPackage="com.cj.ssm.entity" targetProject=".\src\main\java">
+            <property name="enableSubPackages" value="true"/>
+            <property name="trimStrings" value="true"/>
+        </javaModelGenerator>
+        <!--===================================需要变动===================================-->
+        <!-- SQL映射文件的生成策略 -->
+        <sqlMapGenerator targetPackage="mapper" targetProject=".\src\main\resources">
+            <property name="enableSubPackages" value="true"/>
+        </sqlMapGenerator>
+        <!--===================================需要变动===================================-->
+        <!-- Mapper接口的生成策略 -->
+        <javaClientGenerator type="XMLMAPPER" targetPackage="com.cj.ssm.mapper" targetProject=".\src\main\java">
+            <property name="enableSubPackages" value="true"/>
+        </javaClientGenerator>
+        <!--===================================需要变动===================================-->
+        <!-- 逆向分析的表 -->
+        <!-- tableName设置为*号，可以对应所有表，此时不写domainObjectName -->
+        <!-- domainObjectName属性指定生成出来的实体类的类名 -->
+        <table tableName="tb_dept" domainObjectName="Dept"/>
+        <table tableName="tb_emp" domainObjectName="Emp"/>
+    </context>
+
+</generatorConfiguration>

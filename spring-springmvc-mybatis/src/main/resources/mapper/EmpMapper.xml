@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cj.ssm.mapper.EmpMapper" >
+  <resultMap id="BaseResultMap" type="com.cj.ssm.entity.Emp" >
+    <id column="emp_id" property="empId" jdbcType="INTEGER" />
+    <result column="emp_name" property="empName" jdbcType="VARCHAR" />
+    <result column="gender" property="gender" jdbcType="TINYINT" />
+    <result column="email" property="email" jdbcType="VARCHAR" />
+    <result column="d_id" property="dId" jdbcType="INTEGER" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from tb_emp
+    where emp_id = #{empId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.cj.ssm.entity.Emp" >
+    insert into tb_emp (emp_id, emp_name, gender, 
+      email, d_id)
+    values (#{empId,jdbcType=INTEGER}, #{empName,jdbcType=VARCHAR}, #{gender,jdbcType=TINYINT}, 
+      #{email,jdbcType=VARCHAR}, #{dId,jdbcType=INTEGER})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.cj.ssm.entity.Emp" >
+    update tb_emp
+    set emp_name = #{empName,jdbcType=VARCHAR},
+      gender = #{gender,jdbcType=TINYINT},
+      email = #{email,jdbcType=VARCHAR},
+      d_id = #{dId,jdbcType=INTEGER}
+    where emp_id = #{empId,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select emp_id, emp_name, gender, email, d_id
+    from tb_emp
+    where emp_id = #{empId,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select emp_id, emp_name, gender, email, d_id
+    from tb_emp
+  </select>
+</mapper>

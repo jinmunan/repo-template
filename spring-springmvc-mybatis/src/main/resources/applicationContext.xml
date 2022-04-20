@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:c="http://www.springframework.org/schema/c"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!--配置Spring包扫描器, Spring负责管理数据源/事务控制/AOP/业务逻辑等操作 -->
+    <context:component-scan base-package="com.cj.ssm">
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+        <context:exclude-filter type="annotation" expression="org.springframework.web.bind.annotation.RestController"/>
+        <context:exclude-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+        <context:exclude-filter type="annotation" expression="org.springframework.web.bind.annotation.RestControllerAdvice"/>
+    </context:component-scan>
+
+    <!--============================数据源的配置============================-->
+    <!-- 引入JDBC配置文件 -->
+    <context:property-placeholder location="classpath:druid.properties" file-encoding="UTF-8"/>
+
+    <!-- 配置数据源(Druid连接池) -->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+        <property name="filters" value="${jdbc.filters}"/>
+        <property name="initialSize" value="${jdbc.initialSize}"/>
+        <property name="maxActive" value="${jdbc.maxActive}"/>
+        <property name="minIdle" value="${jdbc.minIdle}"/>
+        <property name="timeBetweenEvictionRunsMillis" value="${jdbc.timeBetweenEvictionRunsMillis}"/>
+        <property name="minEvictableIdleTimeMillis" value="${jdbc.minEvictableIdleTimeMillis}"/>
+        <property name="validationQuery" value="${jdbc.validationQuery}"/>
+        <property name="testWhileIdle" value="${jdbc.testWhileIdle}"/>
+        <property name="testOnBorrow" value="${jdbc.testOnBorrow}"/>
+        <property name="testOnReturn" value="${jdbc.testOnReturn}"/>
+        <property name="poolPreparedStatements" value="${jdbc.poolPreparedStatements}"/>
+        <property name="maxPoolPreparedStatementPerConnectionSize"
+                  value="${jdbc.maxPoolPreparedStatementPerConnectionSize}"/>
+    </bean>
+
+
+    <!--============================Spring-Mybatis整合配置============================-->
+    <!-- SqlSessionFactoryBean, 用于创建SqlSessionFactory -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 设置数据源 -->
+        <property name="dataSource" ref="dataSource"/>
+        <!-- 指定Mybatis配置文件位置 -->
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+        <!-- 以下设置既可以写在Mybatis配置文件中, 也可以在这里显式给出 -->
+        <!-- 指定SQL映射文件位置 -->
+        <property name="mapperLocations" value="classpath:mapper/**/*.xml"/>
+        <!--配置Mybatis插件 -->
+                <property name="plugins">
+                    <array>
+                        <bean class="com.github.pagehelper.PageInterceptor">
+                            <property name="properties">
+                                <props>
+                                    <!-- 使用下面的方式配置参数, 一行配置一个 -->
+                                    <!-- 分页合理化, pageNum<=0 时查询第一页，pageNum>pages时查询最后一页 -->
+                                    <prop key="reasonable">true</prop>
+                                    <!-- SQL方言 -->
+                                    <prop key="helperDialect">mysql</prop>
+                                    <!-- pageSize为0时查询所有数据 -->
+                                    <prop key="pageSizeZero">true</prop>
+                                    <!-- 支持分页查询模型, 即 PageHelper.startPage(Object params) 这种用法 -->
+                                    <prop key="support-methods-arguments">true</prop>
+                                </props>
+                            </property>
+                        </bean>
+                    </array>
+                </property>
+    </bean>
+
+    <!-- MapperScannerConfigurer, 扫描指定包下的mapper接口, 创建mapper实例并注册到Spring容器中 -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!-- 指定mapper接口所在的包 -->
+        <property name="basePackage" value="com.cj.ssm.mapper"/>
+        <!-- (可选) 只扫描带了Resource注解的mapper接口 (适用于拓展MBG生成的mapper接口) -->
+        <!--<property name="annotationClass" value="javax.annotation.Resource"/>-->
+        <!-- (可选) 如果容器中有多个SqlSessionFactory, 必须指定使用哪一个 -->
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    </bean>
+
+    <!-- 配置一个用于批量操作的SqlSessionTemplate, 它是线程安全的, 也不需要我们手动close -->
+    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+        <constructor-arg name="sqlSessionFactory" ref="sqlSessionFactory"/>
+        <constructor-arg name="executorType" value="BATCH"/>
+    </bean>
+
+
+    <!--============================事务管理的配置============================-->
+    <!-- 配置事务管理器 -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <!-- 设置数据源 -->
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!-- 开启事务管理的注解驱动, 扫描@Transactional等注解 -->
+    <!--<tx:annotation-driven/>-->
+
+    <!-- 配置事务通知 -->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <!-- 配置事务属性 -->
+        <tx:attributes>
+            <!-- tx:method用来指定要为切入点中的哪些方法开启事务, 并进行更精细的配置 -->
+            <!-- 配置查询方法 -->
+            <tx:method name="get*" read-only="true" propagation="SUPPORTS"/>
+            <tx:method name="query*" read-only="true" propagation="SUPPORTS"/>
+            <tx:method name="find*" read-only="true" propagation="SUPPORTS"/>
+            <tx:method name="select*" read-only="true" propagation="SUPPORTS"/>
+            <tx:method name="count*" read-only="true" propagation="SUPPORTS"/>
+            <!-- 配置增删改方法 -->
+            <tx:method name="save*" propagation="REQUIRES_NEW" rollback-for="java.lang.Exception"/>
+            <tx:method name="insert*" propagation="REQUIRES_NEW" rollback-for="java.lang.Exception"/>
+            <tx:method name="remove*" propagation="REQUIRES_NEW" rollback-for="java.lang.Exception"/>
+            <tx:method name="delete*" propagation="REQUIRES_NEW" rollback-for="java.lang.Exception"/>
+            <tx:method name="update*" propagation="REQUIRES_NEW" rollback-for="java.lang.Exception"/>
+            <tx:method name="modify*" propagation="REQUIRES_NEW" rollback-for="java.lang.Exception"/>
+            <tx:method name="batch*" propagation="REQUIRES_NEW" rollback-for="java.lang.Exception"/>
+            <!-- 配置其他方法 (如果不配置将不会为其开启事务) -->
+            <tx:method name="*"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <!-- AOP配置 -->
+    <aop:config>
+        <!-- 配置切入点表达式 -->
+        <aop:pointcut id="servicePt" expression="execution(* com.cj.ssm.service..*.*(..))"/>
+        <!-- 配置切面, 将Pointcut和Advice关联起来 -->
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="servicePt"/>
+    </aop:config>
+
+</beans>
