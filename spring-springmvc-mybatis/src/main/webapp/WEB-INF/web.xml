@@ -4,56 +4,33 @@
          xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
          version="4.0">
 
-    <!--
-    配置ContextLoaderListener, 加载Spring父容器 (父类的initWebApplicationContext()方法中)
-      可以从ServletContext中根据
-      WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE 这个key来找到Spring容器
-   -->
+    <!--配置ContextLoaderListener, 加载Spring父容器 (父类的initWebApplicationContext()方法中)-->
     <context-param>
         <!-- 指定Spring配置文件位置 -->
         <param-name>contextConfigLocation</param-name>
         <param-value>classpath:applicationContext.xml</param-value>
     </context-param>
     <listener>
-        <!-- 该监听器将根据contextConfigLocation参数加载Spring配置文件, 初始化Spring应用上下文 -->
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
     </listener>
 
-    <!--
-        配置DispatcherServlet, 加载Spring MVC子容器 (父类的initWebApplicationContext()方法中)
-        可以从ServletContext中根据 FrameworkServlet.SERVLET_CONTEXT_PREFIX+Servlet名称 作为key来找到Spring MVC容器
-    -->
+    <!--配置DispatcherServlet,-->
     <servlet>
         <servlet-name>springmvc</servlet-name>
         <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
         <init-param>
-            <!-- 指定Spring MVC配置文件位置, 默认是 /WEB-INF/<servlet-name>-servlet.xml -->
             <param-name>contextConfigLocation</param-name>
             <param-value>classpath:springmvc.xml</param-value>
         </init-param>
-        <!-- 随Tomcat一起启动 -->
         <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet-mapping>
         <servlet-name>springmvc</servlet-name>
-        <!-- / 接收所有请求, 除了jsp -->
-        <!-- /* 接收所有请求, 包括jsp -->
+        <!--/接收所有请求, 除了jsp;/*接收所有请求,包括jsp-->
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
 
-    <!-- 配置Spring Security权限控制的Filter -->
-    <!-- 放在最前面!! -->
-    <!--<filter>
-        <filter-name>springSecurityFilterChain</filter-name>
-        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
-    </filter>
-    <filter-mapping>
-        <filter-name>springSecurityFilterChain</filter-name>
-        <url-pattern>/*</url-pattern>
-    </filter-mapping>-->
-
-    <!-- 配置字符编码过滤器, 用于设置请求和响应的编码 -->
-    <!-- 放在最前面!! -->
+    <!--字符编码过滤器-->
     <filter>
         <filter-name>CharacterEncodingFilter</filter-name>
         <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
@@ -73,8 +50,7 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
-    <!-- 配置HTTP方法过滤器, 实现REST风格的增删改查 -->
-    <!-- 该过滤器根据指定的请求参数(默认是"_method")来修改请求的类型 -->
+    <!--RESTFul风格，需要设置隐藏域，name要等于_method-->
     <filter>
         <filter-name>HiddenHttpMethodFilter</filter-name>
         <filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
